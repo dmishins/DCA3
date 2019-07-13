@@ -126,14 +126,14 @@ class Ui_MainWindow(object):
     
     def takespill(self):
         print "running take spill"
-        print "python takeBinaryData.py -f " + str(self.binfilename.text())
-        os.system("python takeBinaryData.py -f " + str(self.binfilename.text()))
+        print "python takeBinaryData.py " + str(self.binfilename.text())
+        os.system("python takeBinaryData.py " + str(self.binfilename.text()))
 
     def exportrootfile(self):
         print "running script to export root file"     
-        print "python takeandexportroot.py -lf " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text())
+        print "python takeandexportroot_bleeding.py  " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text())
 
-        os.system("python takeandexportroot.py -lf " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text()))
+        os.system("python takeandexportroot_bleeding.py  " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text()))
     def plot(self):
         print "running script to plot data from bin file"
 
@@ -163,9 +163,9 @@ class Ui_MainWindow(object):
             plot  = " -p " + ch
 
 
-        print "python takeandexportroot.py -lf " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp"
+        print "python takeandexportroot_bleeding.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp"
 
-        os.system("python takeandexportroot.py -lf " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp")
+        os.system("python takeandexportroot_bleeding.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp")
 
 
 
