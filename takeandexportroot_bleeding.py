@@ -9,11 +9,14 @@ import re
 import errno
 import time
 import datetime
-from ROOT import TFile, TTree
 from array import array
 with warnings.catch_warnings():
 	warnings.simplefilter("ignore")
 	import paramiko
+        try:
+            from ROOT import TFile, TTree
+        except:
+            print "no root"
 
 parser = argparse.ArgumentParser(description='Take and process data from DAPHNE board')
 parser.add_argument('filename', nargs='?',
