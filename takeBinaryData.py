@@ -6,6 +6,7 @@ import datetime
 import re
 import os, errno
 import argparse
+import serial
 
 parser = argparse.ArgumentParser(description='Take Data from DAPHNE board')
 parser.add_argument('filename', nargs='?',
@@ -27,22 +28,20 @@ parser.add_argument('--spill_length', action='store',
 
 args = parser.parse_args()
 #print args
-s = socket.socket()
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.settimeout(10)
-s.connect((args.daphne_addr, args.daphne_port))
+s = serial.Serial('/dev/ttyUSB0', 480600)
+
 
 if args.spill_length != None:
-	s.send("wr 308 " + args.spill_length + "\r")
-	print s.recv(1024)
+	s.write("wr 308 " + args.spill_length + "\r")
+	print s.read(1024)
 	time.sleep(.5)
-	s.send("rd 308 \r")
-	print s.recv(1024)
+	s.write("rd 308 \r")
+	print s.read(1024)
 	time.sleep(2)
 
 if args.command != None:
-	s.send(args.command + "\r")
-	print s.recv(4096)
+	s.write(args.command + "\r")
+	print s.read(4096)
 if args.command_stop:
 	print "Command Finished. Exiting."
 	exit(0)
@@ -75,42 +74,42 @@ RD_LEN = 1024
 #print "filepath: " + filepath
 
 print "Take Data (wr 303 300)"
-s.send('wr 303 300\r')
-s.recv(1024)
+s.write('wr 303 300\r')
+s.read(1024)
 if args.spill_length:
 	print "Wait "+str(args.spill_length)+" S"
 	time.sleep(float(args.spill_length))
 else:
 	print "Wait 2 S"
 	time.sleep(2)
-s.send('rd 67\r')
+s.write('rd 67\r')
 time.sleep(.25)
-print "READ 67: ", re.search(r'[0-9A-F]+', s.recv(1024)).group()
+print "READ 67: ", re.search(r'[0-9A-F]+', s.read(1024)).group()
 count = 0
 while True:
 	print "Checking if spill done"
-	s.send('rd 303\r')
+	s.write('rd 303\r')
 	time.sleep(.1)
-	rd303 = re.search(r'[0-9A-F]+', s.recv(1024)).group() 
+	rd303 = re.search(r'[0-9A-F]+', s.read(1024)).group() 
 	print "Spill Reg value:", rd303
 	time.sleep(.1)
-	s.send('rd 67\r')
+	s.write('rd 67\r')
 	if rd303 == "0000":
-		print "Spill Done. 67: ", re.search(r'[0-9A-F]+', s.recv(1024)).group()
+		print "Spill Done. 67: ", re.search(r'[0-9A-F]+', s.read(1024)).group()
 		break
 	count += 1
-	print "Spill Not Done. 67: ", re.search(r'[0-9A-F]+', s.recv(1024)).group(), " count is:", count
+	print "Spill Not Done. 67: ", re.search(r'[0-9A-F]+', s.read(1024)).group(), " count is:", count
 	time.sleep(1)
 s.settimeout(1)
 try:
-	s.recv(1024)
+	s.read(1024)
 except:
 	print "Ready"
-s.send('rdb\r\n')
-#s.recv(1024)
+s.write('rdb\r\n')
+#s.read(1024)
 for i in range(10000):
 	try:
-		buf = s.recv(RD_LEN)
+		buf = s.read(RD_LEN)
 	except socket.timeout:
 		print "Readout Attempts: ", i-1
 		break
