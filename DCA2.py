@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/dmishins/simplegui.ui'
+# Form implementation generated from reading ui file '/home/dmishins/DAPHNEgui.ui'
 #
 # Created by: PyQt4 UI code generator 4.12.1
 #
@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(364, 295)
+        MainWindow.resize(364, 310)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.btn_takespill = QtGui.QPushButton(self.centralwidget)
@@ -53,26 +53,35 @@ class Ui_MainWindow(object):
         self.label_bin_filename.setGeometry(QtCore.QRect(110, 70, 81, 17))
         self.label_bin_filename.setObjectName(_fromUtf8("label_bin_filename"))
         self.chk_2 = QtGui.QCheckBox(self.centralwidget)
-        self.chk_2.setGeometry(QtCore.QRect(120, 190, 86, 22))
+        self.chk_2.setGeometry(QtCore.QRect(120, 190, 51, 22))
         self.chk_2.setObjectName(_fromUtf8("chk_2"))
         self.chk_3 = QtGui.QCheckBox(self.centralwidget)
-        self.chk_3.setGeometry(QtCore.QRect(120, 210, 86, 22))
+        self.chk_3.setGeometry(QtCore.QRect(120, 210, 51, 22))
         self.chk_3.setObjectName(_fromUtf8("chk_3"))
         self.chk_4 = QtGui.QCheckBox(self.centralwidget)
-        self.chk_4.setGeometry(QtCore.QRect(120, 230, 86, 22))
+        self.chk_4.setGeometry(QtCore.QRect(120, 230, 51, 22))
         self.chk_4.setObjectName(_fromUtf8("chk_4"))
         self.chk_super = QtGui.QCheckBox(self.centralwidget)
-        self.chk_super.setGeometry(QtCore.QRect(190, 190, 141, 21))
+        self.chk_super.setGeometry(QtCore.QRect(190, 180, 141, 21))
         self.chk_super.setObjectName(_fromUtf8("chk_super"))
         self.chk_1 = QtGui.QCheckBox(self.centralwidget)
-        self.chk_1.setGeometry(QtCore.QRect(120, 170, 86, 22))
+        self.chk_1.setGeometry(QtCore.QRect(120, 170, 51, 22))
         self.chk_1.setObjectName(_fromUtf8("chk_1"))
         self.btn_plt = QtGui.QPushButton(self.centralwidget)
         self.btn_plt.setGeometry(QtCore.QRect(10, 190, 101, 29))
         self.btn_plt.setObjectName(_fromUtf8("btn_plt"))
         self.chk_fft = QtGui.QCheckBox(self.centralwidget)
-        self.chk_fft.setGeometry(QtCore.QRect(190, 220, 86, 22))
+        self.chk_fft.setGeometry(QtCore.QRect(190, 200, 86, 22))
         self.chk_fft.setObjectName(_fromUtf8("chk_fft"))
+        self.chk_maxadchist = QtGui.QCheckBox(self.centralwidget)
+        self.chk_maxadchist.setGeometry(QtCore.QRect(190, 220, 141, 22))
+        self.chk_maxadchist.setObjectName(_fromUtf8("chk_maxadchist"))
+        self.chk_areahist = QtGui.QCheckBox(self.centralwidget)
+        self.chk_areahist.setGeometry(QtCore.QRect(190, 240, 131, 22))
+        self.chk_areahist.setObjectName(_fromUtf8("chk_areahist"))
+        self.chk_plot = QtGui.QCheckBox(self.centralwidget)
+        self.chk_plot.setGeometry(QtCore.QRect(190, 160, 86, 22))
+        self.chk_plot.setObjectName(_fromUtf8("chk_plot"))
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 364, 23))
@@ -92,7 +101,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "DAPHNE GUI", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "DCA2", None))
         self.btn_takespill.setText(_translate("MainWindow", "Take Spill", None))
         self.btn_setdur.setText(_translate("MainWindow", "Set Spill Duration", None))
         self.btn_exp.setText(_translate("MainWindow", "export root file", None))
@@ -105,7 +114,9 @@ class Ui_MainWindow(object):
         self.chk_1.setText(_translate("MainWindow", "ch1", None))
         self.btn_plt.setText(_translate("MainWindow", "Plot from bin file", None))
         self.chk_fft.setText(_translate("MainWindow", "fft", None))
-
+        self.chk_maxadchist.setText(_translate("MainWindow", "MAX adc Histogram", None))
+        self.chk_areahist.setText(_translate("MainWindow", "Area Histogram", None))
+        self.chk_plot.setText(_translate("MainWindow", "Plot", None))
 
     def setspilllen(self):
         print "running script to set spill length"
@@ -120,15 +131,18 @@ class Ui_MainWindow(object):
 
     def exportrootfile(self):
         print "running script to export root file"     
-        print "python takeandexportroot.py -lf " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text())
+        print "python takeandexportroot.py " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text())
 
-        os.system("python takeandexportroot.py -lf " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text()))
+        os.system("python takeandexportroot.py " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text()))
     def plot(self):
         print "running script to plot data from bin file"
 
         ch = ""
         super = ""
         fft = ""
+        ahist = ""
+        hist = ""
+        plot = ""
         if self.chk_1.checkState():
             ch += "ch1 "
         if self.chk_2.checkState():
@@ -138,13 +152,21 @@ class Ui_MainWindow(object):
         if self.chk_4.checkState():
             ch += "ch4 "
         if self.chk_super.checkState():
-            super = "--super "
+            super = " --super "
         if self.chk_fft.checkState():
-            fft = "--fft " + ch
+            fft = " --fft " + ch
+        if self.chk_areahist.checkState():
+            ahist = " --ahist " + ch
+        if self.chk_maxadchist.checkState():
+            hist = " --hist " + ch
+        if self.chk_plot.checkState():
+            plot  = " -p " + ch
 
-        print "python takeandexportroot.py -lf " + str(self.binfilename.text()) + " -p " + ch + super + fft
 
-        os.system("python takeandexportroot.py -lf " + str(self.binfilename.text()) + " -p " + ch + super + fft)
+        print "python takeandexportroot.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp"
+
+        os.system("python takeandexportroot.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp")
+
 
 
 if __name__ == "__main__":

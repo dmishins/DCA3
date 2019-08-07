@@ -11,6 +11,7 @@ import time
 import datetime
 from ROOT import TFile, TTree
 from array import array
+from math import floor, ceil
 with warnings.catch_warnings():
 	warnings.simplefilter("ignore")
 	import paramiko
@@ -18,8 +19,8 @@ with warnings.catch_warnings():
 parser = argparse.ArgumentParser(description='Take and process data from DAPHNE board')
 parser.add_argument('filename', nargs='?',
                     help='the filename to write to in the DATA/{DATE} directory.')
-parser.add_argument('-f', action='store_true',
-                    help='use the relative path, not DATA/{DATE}.  NOT FEDTHROUGH TO SERVER')
+parser.add_argument('-d', action='store_true',
+                    help='use  DATA/{DATE}.  instead of relative path')
 parser.add_argument('--overwrite', action='store_true',
                     help='allow overwriting filename.')
 parser.add_argument('--super', action='store_true',
@@ -32,12 +33,13 @@ parser.add_argument('--ignore_timestamp', action = 'store_true',
                     help='ignore timestamp')
 parser.add_argument('--root', action = 'store',
                     help='output root ttree file')
-
+parser.add_argument('--directory', action = 'store_true',
+                    help='directory of bin files to process')
 parser.add_argument('--feedthrough', metavar = 'FLAG',
                     help='Feed flag through to server script')
 parser.add_argument('--server_script_location', default="DAPHNE/takeBinaryData.py")
-parser.add_argument('-l', action='store_true',
-                    help='use (following) local file.  Do not connect to server')
+parser.add_argument('-r', action='store_true',
+                    help='connect to server and take remote data. DO not use local file')
 parser.add_argument('-p', action='store', nargs = '*',
                     help='plot channels')
 parser.add_argument('--fft', action='store', nargs = '*',
@@ -46,15 +48,15 @@ parser.add_argument('--hist', action='store', nargs = '*',
                     help='plot max adc hist for channels')
 parser.add_argument('--ahist', action='store', nargs = '*',
                     help='plot area  hist for channels')
-
 parser.add_argument('--pltnum', action='store', type=int,
                     help='number of signals to plt.')
+parser.add_argument('--filter', action='store', nargs = '*',
+                    help='filter based on following channels.  Currently filter settings must be changed by editing code')
 parser.add_argument('-s', dest='server', action='store',
                 	default="protodune-daq01.fnal.gov",
                     help='The server to connect to. Default: protodune-daq01.fnal.gov')
 parser.add_argument('--spill_length', action='store',
                     help='sets the spill length. HEX')
-
 parser.add_argument('-u', dest='username', action='store',
                 	default="dunepdt",
                     help='The server to connect to. Default: dunepdt')
@@ -63,7 +65,20 @@ args = parser.parse_args()
 
 #print args
 #exit()
-if args.l == False:
+if args.r == True:
+	localpath = takeremotedata()
+else:
+	localpath = args.filename
+	if args.d == True:
+		ts = time.time()
+		date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
+
+		localpath = str("DATA/"+date+"/"+args.filename+".bin")
+
+print localpath
+
+
+def takeremotedata():
 	with warnings.catch_warnings():
 		warnings.simplefilter("ignore")
 		ssh = paramiko.SSHClient()
@@ -102,14 +117,8 @@ if args.l == False:
 
 
 	scp.get(filepath, localpath)
-else:
-	ts = time.time()
-	date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
+	return localpath
 
-	localpath = str("DATA/"+date+"/"+args.filename+".bin")
-	if args.f != False:
-		localpath = args.filename
-	print localpath
 
 
 def signed(val):
@@ -120,42 +129,46 @@ def signed(val):
 def plotchannel(events, ch, super=False):
 	plt.figure("Waveform")
 	#noisy = [0, 6, 9, 11,18]
-	for i, indiv_event in enumerate(events[:args.pltnum]): #[events[x] for x in noisy]:
+	for i, indiv_event in enumerate(events[:]): #[events[x] for x in noisy]:
+            if 1==1:#getattr(indiv_event, ch+"maxadc") > 10 and getattr(indiv_event, ch+"maxadc") < 15 :
 		plt.plot(getattr(indiv_event, ch), label=(ch+str(i)))
-		plt.title(ch)
+		plt.title(ch+ str(getattr(indiv_event, ch+"maxadc")))
 		plt.xlabel('ticks')
 		plt.ylabel('ADC')
 		if super == False:
-			plt.title(ch + " Event: " + str(i+1) )
-			plt.show()
-			#print getattr(indiv_event, ch)
+		    plt.title(ch + " Event: " + str(i+1) + "maxadc: "  + str(getattr(indiv_event, ch+"maxadc")))
+		    plt.show()
+		    #print getattr(indiv_event, ch)
 		else:
-			plt.show(block=False)
+		    plt.show(block=False)
 	#plt.draw()
 
 def histchannel(events, ch):
 	plt.figure("MAX ADC Histogram")
 	maxadcvals = []
 	#noisy = [0, 6, 9, 11,18]
-	for i, indiv_event in enumerate(events[:args.pltnum]): #[events[x] for x in noisy]:
+	for i, indiv_event in enumerate(events[:]): #[events[x] for x in noisy]:
 		maxadcvals.append(getattr(indiv_event, ch+"maxadc"))
-	plt.hist(maxadcvals)
+	plt.hist(maxadcvals, bins=range(min(maxadcvals), max(maxadcvals) + 1, 1))
 	plt.xlabel('MAX ADC value in event')
-	plt.ylabel('ADC')
+	plt.ylabel('# Of events')
 	plt.title("MAX ADC Histogram")
-	plt.show(block=False)
+	plt.yscale('log')
+        plt.show(block=False)
 	#plt.draw()
+
 def ahistchannel(events, ch):
 	plt.figure("Area Histogram")
 	areavals = []
 	#noisy = [0, 6, 9, 11,18]
 	for i, indiv_event in enumerate(events[:args.pltnum]): #[events[x] for x in noisy]:
 		areavals.append(getattr(indiv_event, ch+"area"))
-	plt.hist(areavals)
+	plt.hist(areavals,  bins=50)#range(int(floor(min(areavals))), int(ceil(max(areavals))) + 1, 1))
+
 	plt.xlabel('Area around max adc value in event')
 	plt.ylabel('ADC')
 	plt.title("Area Around Max Histogram")
-
+#        plt.yscale('log')
 	plt.show(block=False)
 
 
@@ -172,11 +185,11 @@ def fftchannel(events, ch, super=False):
 		freqs = np.fft.fftfreq(len(evchdata)) * f_s
 		if np.shape(eventfft) == (239,):
 			totalfft = totalfft + abs(eventfft)
-		plt.plot(abs(freqs/1e6), abs(eventfft))
+		#plt.plot(abs(freqs/1e6), abs(eventfft))
 		plt.xlabel('Frequency (MHz)')
-		plt.xlim(0,f_s//1e6//2)
-		plt.title(ch + " FFT")
-
+		#plt.xlim(0,f_s//1e6//2)
+                #plt.title(ch + " FFT")
+                #plt.ylim((0, 30000))
 
 		#plt.title(ch)
 		if super == False:
@@ -184,6 +197,15 @@ def fftchannel(events, ch, super=False):
 			plt.show()
 	plt.plot(abs(freqs/1e6), abs(totalfft))
 	plt.show(block=False)
+
+def filter(events, ch):
+	filteredevents = []
+	for i, indiv_event in enumerate(events): #[events[x] for x in noisy]:
+		fft = np.fft.fft(getattr(indiv_event, ch))
+		if max(abs(fft[8:11]))< 275:
+			filteredevents.append(indiv_event)
+	return filteredevents
+
 
 class event:
 	headerlen = 32
@@ -223,7 +245,13 @@ class event:
 			self.ch2maxidx = self.ch2.index(max(self.ch2))
 			self.ch3maxidx = self.ch3.index(max(self.ch3))
 			self.ch4maxidx = self.ch4.index(max(self.ch4))
-			self.integrate()
+                        #print self.ch4[max(0, self.ch4maxidx-3):self.ch4maxidx]
+                        #print self.ch4maxidx
+                        self.ch1mymax = self.ch1maxadc - min(self.ch1[max(0, self.ch1maxidx-8):self.ch1maxidx+2])
+                        self.ch2mymax = self.ch2maxadc - min(self.ch2[max(0, self.ch2maxidx-8):self.ch2maxidx+2])
+                        self.ch3mymax = self.ch3maxadc - min(self.ch3[max(0, self.ch3maxidx-8):self.ch3maxidx+2])
+                        self.ch4mymax = self.ch4maxadc - min(self.ch4[max(0, self.ch4maxidx-8):self.ch4maxidx+2])
+                        self.integrate()
 
 		#else:
 			#print "ERROR. ", self.ch1raw, self.ch2raw, self.ch3raw, self.ch4raw
@@ -266,45 +294,59 @@ class event:
 		self.ch4area = np.trapz(self.ch4[self.ch4maxidx-2:self.ch4maxidx+2])
 
 
-f = open(localpath, "rb")
-remote_timestamp = f.readline()
-if not args.ignore_timestamp:
-	st = datetime.datetime.fromtimestamp(float(remote_timestamp)).strftime('%Y-%m-%d %H:%M:%S')
-	print "TIMESTAMP: ", st
+def process_file(localpath):
+	f = open(localpath, "rb")
+	remote_timestamp = f.readline()
+	if not args.ignore_timestamp:
+		st = datetime.datetime.fromtimestamp(float(remote_timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+		print "TIMESTAMP: ", st
 
-lines = f.readlines()
+	lines = f.readlines()
 
-dump = "".join(lines).encode('hex_codec')[:]
-print "Buffer len: ", len(dump)
-#events = [x for x in re.split('(03c8)', joinedall) if x]
-ptr = 34
-spillheader = dump[:32]
-print "HEADER: ", spillheader
-tgrexp =  int(spillheader[8:16],16)
-trgrcv = 0
-events = []
-i = 0
-while trgrcv < tgrexp:
-	if not dump[ptr:ptr+32]:
-		print "ERROR at event ", trgrcv, " at position: ", ptr
-		print "Dump: ", dump[ptr:ptr+32]
+	dump = "".join(lines).encode('hex_codec')[:]
+	print "Buffer len: ", len(dump)
+	#events = [x for x in re.split('(03c8)', joinedall) if x]
+	ptr = 34
+	spillheader = dump[:32]
+	print "HEADER: ", spillheader
+	tgrexp =  int(spillheader[8:16],16)
+	trgrcv = 0
+	i = 0
+	while trgrcv < tgrexp:
+		if not dump[ptr:ptr+32]:
+			print "ERROR at event ", trgrcv, " at position: ", ptr
+			print "Dump: ", dump[ptr:ptr+32]
+			trgrcv += 1
+			continue
+
+		#print dump[ptr:ptr+32], trgrcv
+		eventsize = int(dump[ptr:ptr+4],16)*4
+
+		#print eventsize, ptr, i 
+                #if eventsize != int("03c8",16)*4:
+		#	print "ERR: Event size wrong: ", eventsize, " for event: " + str(trgrcv) + " at ptr: " + str(ptr)
+		#	print "Making eventsize 03c8 to mitigate readout bug"
+		#	eventsize = int("03c8",16)*4
+
+		#print eventsize
+		#print dump[ptr:ptr+eventsize] + "\n\n"
+		events.append(event(dump[ptr:ptr+eventsize]))
+		ptr += eventsize
 		trgrcv += 1
-		continue
 
-	#print dump[ptr:ptr+32], trgrcv
-	eventsize = int(dump[ptr:ptr+4],16)*4
 
-	#print eventsize, ptr, i 
-	if eventsize != int("03c8",16)*4:
-		print "ERR: Event size wrong: ", eventsize, " for event: " + str(trgrcv) + " at ptr: " + str(ptr)
-		print "Making eventsize 03c8 to mitigate readout bug"
-		eventsize = int("03c8",16)*4
+events = []
+if args.directory:
+	for filename in os.listdir(localpath):
+		print filename
+		process_file(localpath + "/" + filename)
+else:
+	process_file(localpath)
 
-	#print eventsize
-	#print dump[ptr:ptr+eventsize] + "\n\n"
-	events.append(event(dump[ptr:ptr+eventsize]))
-	ptr += eventsize
-	trgrcv += 1
+if args.filter:
+	for channel in args.filter:
+		events = filter(events, channel)
+
 
 if events:
 	print "Length of Event[0].ch1: ", len(events[0].ch1)
@@ -383,11 +425,11 @@ if events:
 			plotchannel(events, channel, super=args.super)
 
 	if args.hist:
-		for channel in args.p:
+		for channel in args.hist:
 			histchannel(events, channel)
 
 	if args.ahist:
-		for channel in args.p:
+		for channel in args.ahist:
 			ahistchannel(events, channel)
 
 
