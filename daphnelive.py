@@ -129,14 +129,14 @@ def signed(val):
 def plotchannel(events, ch, super=False):
 	plt.figure("Waveform")
 	#noisy = [0, 6, 9, 11,18]
-	for i, indiv_event in enumerate(events[:]): #[events[x] for x in noisy]:
-            if 1==1:#getattr(indiv_event, ch+"maxadc") > 10 and getattr(indiv_event, ch+"maxadc") < 15 :
+	for i, indiv_event in enumerate(events[:args.pltnum]): #[events[x] for x in noisy]:
+            if 1==1: # getattr(indiv_event, ch+"maxadc") > 20 and getattr(indiv_event, ch+"maxadc") < 30:
 		plt.plot(getattr(indiv_event, ch), label=(ch+str(i)))
-		plt.title(ch+ str(getattr(indiv_event, ch+"maxadc")))
+		plt.title(ch)
 		plt.xlabel('ticks')
 		plt.ylabel('ADC')
 		if super == False:
-		    plt.title(ch + " Event: " + str(i+1) + "maxadc: "  + str(getattr(indiv_event, ch+"maxadc")))
+		    plt.title(ch + " Event: " + str(i+1) )
 		    plt.show()
 		    #print getattr(indiv_event, ch)
 		else:
@@ -147,13 +147,13 @@ def histchannel(events, ch):
 	plt.figure("MAX ADC Histogram")
 	maxadcvals = []
 	#noisy = [0, 6, 9, 11,18]
-	for i, indiv_event in enumerate(events[:]): #[events[x] for x in noisy]:
+	for i, indiv_event in enumerate(events[:args.pltnum]): #[events[x] for x in noisy]:
 		maxadcvals.append(getattr(indiv_event, ch+"maxadc"))
 	plt.hist(maxadcvals, bins=range(min(maxadcvals), max(maxadcvals) + 1, 1))
 	plt.xlabel('MAX ADC value in event')
 	plt.ylabel('# Of events')
 	plt.title("MAX ADC Histogram")
-	plt.yscale('log')
+#	plt.yscale('log')
         plt.show(block=False)
 	#plt.draw()
 
@@ -247,10 +247,10 @@ class event:
 			self.ch4maxidx = self.ch4.index(max(self.ch4))
                         #print self.ch4[max(0, self.ch4maxidx-3):self.ch4maxidx]
                         #print self.ch4maxidx
-                        self.ch1mymax = self.ch1maxadc - min(self.ch1[max(0, self.ch1maxidx-8):self.ch1maxidx+2])
-                        self.ch2mymax = self.ch2maxadc - min(self.ch2[max(0, self.ch2maxidx-8):self.ch2maxidx+2])
-                        self.ch3mymax = self.ch3maxadc - min(self.ch3[max(0, self.ch3maxidx-8):self.ch3maxidx+2])
-                        self.ch4mymax = self.ch4maxadc - min(self.ch4[max(0, self.ch4maxidx-8):self.ch4maxidx+2])
+                        self.ch1mymax = self.ch1maxadc - min(self.ch1[max(0, self.ch1maxidx-3):self.ch1maxidx+1])
+                        self.ch2mymax = self.ch2maxadc - min(self.ch2[max(0, self.ch2maxidx-3):self.ch2maxidx+1])
+                        self.ch3mymax = self.ch3maxadc - min(self.ch3[max(0, self.ch3maxidx-3):self.ch3maxidx+1])
+                        self.ch4mymax = self.ch4maxadc - min(self.ch4[max(0, self.ch4maxidx-3):self.ch4maxidx+1])
                         self.integrate()
 
 		#else:

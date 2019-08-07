@@ -12,7 +12,7 @@ parser.add_argument('filename', nargs='?',
                     help='the filename to write to in the DATA/{DATE} directory.')
 parser.add_argument('--daphne_port', action='store', default="5000",
                     help='path to daphne board', type=int)
-parser.add_argument('--daphne_addr', action='store', default="192.168.124.81",
+parser.add_argument('--daphne_addr', action='store', default="192.168.0.19",
                     help='path to daphne board')
 parser.add_argument('-f', action='store_true',
                     help='use the relative path, not DATA/{DATE}')
@@ -108,7 +108,7 @@ except:
 	print "Ready"
 s.send('rdb\r\n')
 #s.recv(1024)
-for i in range(10000):
+for i in range(100000):
 	try:
 		buf = s.recv(RD_LEN)
 	except socket.timeout:
@@ -118,4 +118,4 @@ for i in range(10000):
 
 s.close()
  
-print "filepath: " + rel_path
+print "filepath: " + filepath

@@ -101,7 +101,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "DAPHNE GUI", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "DCA2", None))
         self.btn_takespill.setText(_translate("MainWindow", "Take Spill", None))
         self.btn_setdur.setText(_translate("MainWindow", "Set Spill Duration", None))
         self.btn_exp.setText(_translate("MainWindow", "export root file", None))
@@ -131,9 +131,9 @@ class Ui_MainWindow(object):
 
     def exportrootfile(self):
         print "running script to export root file"     
-        print "python takeandexportroot.py -lf " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text())
+        print "python takeandexportroot_bleeding.py " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text())
 
-        os.system("python takeandexportroot.py -lf " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text()))
+        os.system("python takeandexportroot_bleeding.py " + str(self.binfilename.text()) + " --root " + str(self.rootfilename.text()))
     def plot(self):
         print "running script to plot data from bin file"
 
@@ -163,9 +163,9 @@ class Ui_MainWindow(object):
             plot  = " -p " + ch
 
 
-        print "python takeandexportroot.py -lf " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp"
+        print "python takeandexportroot_bleeding.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp"
 
-        os.system("python takeandexportroot.py -lf " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp")
+        os.system("python takeandexportroot_bleeding.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + " --ignore_timestamp")
 
 
 
