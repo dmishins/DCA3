@@ -47,7 +47,7 @@ if args.get_current != None:
 	for x in range(3):
 		if x == board_indx:
 			continue
-		s.send(f'wr {board_lst[x]}20 0 \r')
+		s.send('wr {}20 0 \r'.format(board_lst[x]))
 		print s.recv(1024)
 		time.sleep(.5)
 	
@@ -55,16 +55,16 @@ if args.get_current != None:
 		s.send('mux 0 \r')
 		print s.recv(1024)
 		time.sleep(.5)
-		s.send(f'wr 20 1{port} \r')
+		s.send('wr 20 1{} \r'.format(port))
 		print s.recv(1024)
 		time.sleep(.5)
 
 	else:
-		s.send(f'mux {board_indx} \r')
+		s.send('mux {} \r'.format(board_indx))
 		print s.recv(1024)
 		time.sleep(.5)
-		s.send(f'wr {board} 1{indx_lst[port_indx]} \r')
-		s.send(f'wr 20 0{port_num} \r')
+		s.send('wr {} 1{} \r'.format(board,indx_lst[port_indx]))
+		s.send('wr 20 0{} \r'.format(port_num))
 		print s.recv(1024)
 		time.sleep(.5)
 
