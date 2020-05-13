@@ -38,7 +38,7 @@ if args.get_current != None:
 	addr = int(args.get_current)
 	indx_lst = ['0','4','8','C']
 	board_indx = addr//16
-	board = f'{board_lst[board_indx]}20'
+	board = '{}20'.format(board_lst[board_indx])
 	remainder = addr%16
 	port = hex(remainder)[2:]
 	port_indx = int(port)//4
@@ -68,7 +68,7 @@ if args.get_current != None:
 		print s.recv(1024)
 		time.sleep(.5)
 
-	s.send(f'a0 1 \r')
+	s.send('a0 1 \r')
 	print s.recv(1024)
 	time.sleep(.5)
 
