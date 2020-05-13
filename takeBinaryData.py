@@ -24,6 +24,8 @@ parser.add_argument('--command_stop', action='store_true',
                     help='run command on board, then stop')
 parser.add_argument('--spill_length', action='store',
                     help='sets the spill length. HEX')
+parser.add_argument('--get_current', action='store',
+                    help='gets the current for a given port')
 
 args = parser.parse_args()
 #print args
@@ -31,6 +33,45 @@ s = socket.socket()
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.settimeout(10)
 s.connect((args.daphne_addr, args.daphne_port))
+
+if args.get_current != None:
+	addr = int(args.get_current)
+	indx_lst = ['0','4','8','C']
+	board_indx = addr//16
+	board = f'{board_lst[board_indx]}20'
+	remainder = addr%16
+	port = hex(remainder)[2:]
+	port_indx = int(port)//4
+	port_num = int(port)%4
+
+	for x in range(3):
+		if x == board_indx:
+			continue
+		s.send(f'wr {board_lst[x]}20 0 \r')
+		print s.recv(1024)
+		time.sleep(.5)
+	
+	if board_indx == 0:
+		s.send('mux 0 \r')
+		print s.recv(1024)
+		time.sleep(.5)
+		s.send(f'wr 20 1{port} \r')
+		print s.recv(1024)
+		time.sleep(.5)
+
+	else:
+		s.send(f'mux {board_indx} \r')
+		print s.recv(1024)
+		time.sleep(.5)
+		s.send(f'wr {board} 1{indx_lst[port_indx]} \r')
+		s.send(f'wr 20 0{port_num} \r')
+		print s.recv(1024)
+		time.sleep(.5)
+
+	s.send(f'a0 1 \r')
+	print s.recv(1024)
+	time.sleep(.5)
+
 
 if args.spill_length != None:
 	s.send("wr 308 " + args.spill_length + "\r")
