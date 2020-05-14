@@ -38,11 +38,11 @@ if args.get_current != None:
 	addr = int(args.get_current)
 	indx_lst = ['0','4','8','C']
 	board_indx = addr//16
-	board = '{}20'.format(index_lst[board_indx])
+	board = '{}20'.format(indx_lst[board_indx])
 	remainder = addr%16
 	port = hex(remainder)[2:]
-	port_indx = int(port)//4
-	port_num = int(port)%4
+	port_indx = int(remainder)//4
+	port_num = int(remainder)%4
 
 	for x in range(4):
 		if x == board_indx:
@@ -64,6 +64,8 @@ if args.get_current != None:
 		print s.recv(1024)
 		time.sleep(.5)
 		s.send('wr {} 1{} \r'.format(board,indx_lst[port_indx]))
+		print s.recv(1024)
+		time.sleep(.5)
 		s.send('wr 20 0{} \r'.format(port_num))
 		print s.recv(1024)
 		time.sleep(.5)
@@ -73,7 +75,7 @@ if args.get_current != None:
 	time.sleep(.5)
 
 	for x in range(4):
-		s.send('wr {}20 0 \r'.format(board_lst[x]))
+		s.send('wr {}20 0 \r'.format(indx_lst[x]))
 		print s.recv(1024)
 		time.sleep(.5)
 
