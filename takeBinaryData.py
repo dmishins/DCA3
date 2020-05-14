@@ -82,17 +82,17 @@ if args.get_current != None:
 
 if args.spill_length != None:
 	s.send("wr 308 " + args.spill_length + "\r")
-	#print s.recv(1024)
+	print s.recv(1024)
 	time.sleep(.5)
 	s.send("rd 308 \r")
-	#print s.recv(1024)
+	print s.recv(1024)
 	time.sleep(2)
 
 if args.command != None:
 	s.send(args.command + "\r")
-	#print s.recv(4096)
+	print s.recv(4096)
 if args.command_stop:
-	#print "Command Finished. Exiting."
+	print "Command Finished. Exiting."
 	exit(0)
 ts = time.time()
 date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
@@ -123,8 +123,8 @@ RD_LEN = 1024
 #print "filepath: " + filepath
 
 print "Take Data (wr 303 300)"
-s.send('wr 303 300\r\n')
-#s.recv(1024)
+s.send('wr 303 300\r')
+s.recv(1024)
 if args.spill_length:
 	print "Wait "+str(args.spill_length)+" S"
 	time.sleep(float(args.spill_length))
