@@ -224,7 +224,7 @@ class event:
 		self.ch4 = []
 
 		self.extract(data)
-		if self.ch1raw == None or self.ch2raw == None or self.ch3raw == None or self.ch4raw == None or self.headerraw == None:
+		if not self.ch1raw or not self.ch2raw or not self.ch3raw or not self.ch4raw or not self.headerraw:
 			print "Bad Data"
 			print self.headerraw
 
@@ -237,7 +237,20 @@ class event:
 			#exit()
 		else:
 			self.process()
+                        if not self.ch1 or not self.ch2 or not self.ch3 or not self.ch4:
+                            print "Bad processed Data"
+                            print self.headerraw
+    
+                            print self.ch1raw
+                            print self.ch2raw
+                            print self.ch3raw
+                            print self.ch4raw
+
+
+
 			self.ch1maxadc = max(self.ch1)
+                        print self.ch2raw
+                        print self.ch2, "here"
 			self.ch2maxadc = max(self.ch2)
 			self.ch3maxadc = max(self.ch3)
 			self.ch4maxadc = max(self.ch4)
@@ -307,12 +320,14 @@ def process_file(localpath):
 	print "Buffer len: ", len(dump)
 	#events = [x for x in re.split('(03c8)', joinedall) if x]
 	ptr = 34
-	spillheader = dump[:32]
+	spillheader = dump[2:34]
 	print "HEADER: ", spillheader
 	tgrexp =  int(spillheader[8:16],16)
 	trgrcv = 0
 	i = 0
-	while trgrcv < tgrexp:
+        print tgrexp, trgrcv
+        #quit()
+        while trgrcv < tgrexp:
 		if not dump[ptr:ptr+32]:
 			print "ERROR at event ", trgrcv, " at position: ", ptr
 			print "Dump: ", dump[ptr:ptr+32]
