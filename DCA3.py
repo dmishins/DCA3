@@ -38,23 +38,11 @@ class Ui_MainWindow(object):
         self.label_bin_filename = QtWidgets.QLabel(self.centralwidget)
         self.label_bin_filename.setGeometry(QtCore.QRect(110, 110, 81, 17))
         self.label_bin_filename.setObjectName("label_bin_filename")
-        self.chk_2 = QtWidgets.QCheckBox(self.centralwidget)
-        self.chk_2.setGeometry(QtCore.QRect(120, 230, 51, 22))
-        self.chk_2.setObjectName("chk_2")
-        self.chk_3 = QtWidgets.QCheckBox(self.centralwidget)
-        self.chk_3.setGeometry(QtCore.QRect(120, 250, 51, 22))
-        self.chk_3.setObjectName("chk_3")
-        self.chk_4 = QtWidgets.QCheckBox(self.centralwidget)
-        self.chk_4.setGeometry(QtCore.QRect(120, 270, 51, 22))
-        self.chk_4.setObjectName("chk_4")
         self.chk_super = QtWidgets.QCheckBox(self.centralwidget)
         self.chk_super.setGeometry(QtCore.QRect(190, 220, 141, 21))
         self.chk_super.setObjectName("chk_super")
-        self.chk_1 = QtWidgets.QCheckBox(self.centralwidget)
-        self.chk_1.setGeometry(QtCore.QRect(120, 210, 51, 22))
-        self.chk_1.setObjectName("chk_1")
         self.btn_plt = QtWidgets.QPushButton(self.centralwidget)
-        self.btn_plt.setGeometry(QtCore.QRect(10, 230, 101, 29))
+        self.btn_plt.setGeometry(QtCore.QRect(10, 210, 101, 29))
         self.btn_plt.setObjectName("btn_plt")
         self.chk_fft = QtWidgets.QCheckBox(self.centralwidget)
         self.chk_fft.setGeometry(QtCore.QRect(190, 240, 86, 22))
@@ -74,9 +62,15 @@ class Ui_MainWindow(object):
         self.current_channel = QtWidgets.QSpinBox(self.centralwidget)
         self.current_channel.setGeometry(QtCore.QRect(200, 10, 59, 29))
         self.current_channel.setObjectName("current_channel")
+        self.plainTextEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.plainTextEdit.setGeometry(QtCore.QRect(10, 270, 104, 31))
+        self.plainTextEdit.setObjectName("plainTextEdit")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(40, 250, 40, 12))
+        self.label.setObjectName("label")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 364, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 364, 17))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -100,19 +94,16 @@ class Ui_MainWindow(object):
         self.btn_exp.setText(_translate("MainWindow", "export root file"))
         self.label_root_filename.setText(_translate("MainWindow", "root Filename"))
         self.label_bin_filename.setText(_translate("MainWindow", "Bin Filename"))
-        self.chk_2.setText(_translate("MainWindow", "ch2"))
-        self.chk_3.setText(_translate("MainWindow", "ch3"))
-        self.chk_4.setText(_translate("MainWindow", "ch4"))
         self.chk_super.setText(_translate("MainWindow", "superimpose events"))
-        self.chk_1.setText(_translate("MainWindow", "ch1"))
         self.btn_plt.setText(_translate("MainWindow", "Plot from bin file"))
         self.chk_fft.setText(_translate("MainWindow", "fft"))
         self.chk_maxadchist.setText(_translate("MainWindow", "MAX adc Histogram"))
         self.chk_areahist.setText(_translate("MainWindow", "Area Histogram"))
         self.chk_plot.setText(_translate("MainWindow", "Plot"))
         self.btn_measurecur.setText(_translate("MainWindow", "Measure Current"))
-        
-        
+        self.label.setText(_translate("MainWindow", "Channel"))
+
+
     def setspilllen(self):
         print("running script to set spill length")
         print("python takeBinaryData.py --spill_length " + str(self.spilldurr.value()) + " --command_stop")
@@ -144,14 +135,7 @@ class Ui_MainWindow(object):
         ahist = ""
         hist = ""
         plot = ""
-        if self.chk_1.checkState():
-            ch += "ch1 "
-        if self.chk_2.checkState():
-            ch += "ch2 "
-        if self.chk_3.checkState():
-            ch += "ch3 "
-        if self.chk_4.checkState():
-            ch += "ch4 "
+        ch =self.plainTextEdit.text()
         if self.chk_super.checkState():
             super = " --super "
         if self.chk_fft.checkState():
