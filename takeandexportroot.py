@@ -22,13 +22,13 @@ parser.add_argument('--PROMPT2', action='store_true',
                     help='Skip one prompt at the beginning of the spill (after header)')
 
 # Actions
-parser.add_argument('-p', action='store', nargs='*',
+parser.add_argument('-p', action='store', nargs='*', type=int,
                     help='plot channels')
-parser.add_argument('--fft', action='store', nargs='*',
+parser.add_argument('--fft', action='store', nargs='*', type=int,
                     help='plot fft channels')
-parser.add_argument('--hist', action='store', nargs='*',
+parser.add_argument('--hist', action='store', nargs='*', type=int,
                     help='plot max adc hist for channels')
-parser.add_argument('--ahist', action='store', nargs='*',
+parser.add_argument('--ahist', action='store', nargs='*', type=int,
                     help='plot area  hist for channels')
 
 # Modifiers
@@ -54,79 +54,77 @@ def signed(val):
         return val - 4096
     return val
 
-def plotchannel(events, ch_list, super=False):
+def plotchannel(events, ch, super=False):
     plt.figure("Waveform")
-    for ch in ch_list:
-        for i, indiv_event in enumerate(events[:args.pltnum]):
-            plt.plot(indiv_event.wave[ch], label=("EV: " + str(i)))
-            plt.xlabel('ticks (12.55 ns)')
-            plt.ylabel('ADC')
-            if super == False:
-                plt.title("CH: " + ch + " Event: " + str(i))
-                plt.show()
-            else:
-                plt.title("CH: " + ch)
-                plt.show(block=False)
-        plt.show()
+    for i, indiv_event in enumerate(events[:args.pltnum]):
+        plt.plot(indiv_event.wave[ch], label=("EV: " + str(i)))
+        plt.xlabel('ticks (12.55 ns)')
+        plt.ylabel('ADC')
+        if super == False:
+            plt.title("CH: " + str(ch) + " Event: " + str(i))
+            plt.show()
+        else:
+            plt.title(pltttl)
+            plt.show(block=False)
 
-def histchannel(events, ch_list):
+def histchannel(events, ch):
     plt.figure("MAX ADC Histogram")
     maxadcvals = []
-    for ch in ch_list:
-        for i, indiv_event in enumerate(events[:args.pltnum]):
-            maxadcvals.append(indiv_event.maxadc[ch])
-        plt.hist(maxadcvals, bins=list(range(min(maxadcvals), max(maxadcvals) + 1, 1)))
-        plt.xlabel('MAX ADC value in event')
-        plt.ylabel('# Of events')
-        plt.title("MAX ADC Histogram  CH:" + ch)
-        plt.yscale('log')
-        plt.show()
+    for i, indiv_event in enumerate(events[:args.pltnum]):
+        maxadcvals.append(indiv_event.maxadc[ch])
+    plt.hist(maxadcvals, bins=list(range(min(maxadcvals)-1, max(maxadcvals) + 3, 1)))
+    plt.xlabel('MAX ADC value in event')
+    plt.ylabel('# Of events')
+    plt.title("MAX ADC Histogram  CH:" + str(ch))
+    plt.yscale('log')
+    plt.show()
 
 
-def ahistchannel(events, ch_list):
+def ahistchannel(events, ch):
     plt.figure("Area Histogram")
     areavals = []
-    for ch in ch_list:
-        for i, indiv_event in enumerate(events[:args.pltnum]):
-            areavals.append(getattr(indiv_event, ch + "area"))
-        # range(int(floor(min(areavals))), int(ceil(max(areavals))) + 1, 1))
-        plt.hist(areavals, bins=50)
+    for i, indiv_event in enumerate(events[:args.pltnum]):
+        areavals.append(indiv_event.area[ch])
+    # range(int(floor(min(areavals))), int(ceil(max(areavals))) + 1, 1))
+    plt.hist(areavals, bins=50)
 
-        plt.xlabel('Area around max adc value in event')
-        plt.ylabel('ADC')
-        plt.title("Area Around Max Histogram  CH: " + ch)
-        #plt.yscale('log')
-        plt.show()
+    plt.xlabel('Area around max adc value in event')
+    plt.ylabel('ADC')
+    plt.title("Area Around Max Histogram  CH: " + str(ch))
+    #plt.yscale('log')
+    plt.show()
 
-def fftchannel(events, ch_list, super=False):
+def fftchannel(events, ch, super=False):
     f_s = 1 / 12.55e-9
 
     plt.figure("FFT")
     totalfft = np.zeros(239, dtype=np.complex128)
-    for ch in ch_list:
-        for i, indiv_event in enumerate(events[:args.pltnum]):
-            evchdata = getattr(indiv_event, ch)
-            eventfft = np.fft.fft(evchdata)
-            freqs = np.fft.fftfreq(len(evchdata)) * f_s
-            if np.shape(eventfft) == (239,):
-                totalfft = totalfft + abs(eventfft)
-            # plt.plot(abs(freqs/1e6), abs(eventfft))
-            plt.xlabel('Frequency (MHz)')
-            # plt.xlim(0,f_s//1e6//2)
-            # plt.title(ch + " FFT")
-            # plt.ylim((0, 30000))
+    for i, indiv_event in enumerate(events[:args.pltnum]):
+        evchdata = indiv_event.wave[ch]
+        eventfft = np.fft.fft(evchdata)
+        freqs = np.fft.fftfreq(len(evchdata)) * f_s
+        if np.shape(eventfft) == (239,):
+            totalfft = totalfft + abs(eventfft)
+        else:
+            print("Bad FFT")
+        # plt.xlim(0,f_s//1e6//2)
+        # plt.title(ch + " FFT")
+        # plt.ylim((0, 30000))
 
-            # plt.title(ch)
-            if super == False:
-                plt.title(ch + " Event: " + str(i + 1))
-                plt.show()
-        plt.plot(abs(freqs / 1e6), abs(totalfft))
-        plt.show(block=False)
+        # plt.title(ch)
+        if super == False:
+            plt.plot(abs(freqs/1e6), abs(eventfft))
+            plt.title(str(ch) + " Event: " + str(i + 1))
+            plt.show()
+    plt.plot(abs(freqs / 1e6), abs(totalfft))
+    plt.title("Total (Sum) FFT CH: " + str(ch))
+    plt.xlabel('Frequency (MHz)')
+    plt.show()
 
 def filter(events, ch):
     filteredevents = []
     for i, indiv_event in enumerate(events):  # [events[x] for x in noisy]:
-        fft = np.fft.fft(getattr(indiv_event, ch))
+        fft = np.fft.fft(indiv_event.wave[ch])
         if max(abs(fft[8:11])) < 275:
             filteredevents.append(indiv_event)
     return filteredevents
@@ -204,7 +202,7 @@ class event:
                 print(ptr, data[ptr:ptr + 5].hex())
                 print("bad channel")
                 break
-            chno = struct.unpack(">B", data[ptr + 1:ptr + 2])
+            chno = struct.unpack(">B", data[ptr + 1:ptr + 2])[0]
             chraw = data[ptr + 2:ptr + 2 * self.sp] # There appears to be an off-by-one in the FEB. here are sp-1 samples
             #print(chraw.hex())
             fmt = ">%dH" % (self.sp-1)
@@ -284,9 +282,11 @@ if events:
     if args.root:
         print("Attempting to export events as a ROOT TFile")
         exportroot(events)
-
+    print(args.p)
     if args.p:
+        pltttl = "CH: "
         for channel in args.p:
+            pltttl = pltttl + str(channel) + " "
             plotchannel(events, channel, super=args.super)
 
     if args.hist:
@@ -298,7 +298,9 @@ if events:
             ahistchannel(events, channel)
 
     if args.fft:
+        pltttl = "FFT CH: "
         for channel in args.fft:
+            pltttl = pltttl + str(channel) + " "
             fftchannel(events, channel, super=args.super)
     plt.show()
 
