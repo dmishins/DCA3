@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'OLD/DAPHNEgui.ui'
+# Form implementation generated from reading ui file 'DAPHNEgui.ui'
 #
 # Created by: PyQt5 UI code generator 5.10.1
 #
@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -62,12 +63,15 @@ class Ui_MainWindow(object):
         self.current_channel = QtWidgets.QSpinBox(self.centralwidget)
         self.current_channel.setGeometry(QtCore.QRect(200, 10, 59, 29))
         self.current_channel.setObjectName("current_channel")
-        self.plainTextEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.plainTextEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
         self.plainTextEdit.setGeometry(QtCore.QRect(10, 270, 104, 31))
         self.plainTextEdit.setObjectName("plainTextEdit")
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(40, 250, 40, 12))
         self.label.setObjectName("label")
+        self.btn_measurecur_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.btn_measurecur_2.setGeometry(QtCore.QRect(280, 10, 61, 29))
+        self.btn_measurecur_2.setObjectName("btn_measurecur_2")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 364, 17))
@@ -79,9 +83,11 @@ class Ui_MainWindow(object):
 
         self.btn_setdur.clicked.connect(self.setspilllen)
         self.btn_measurecur.clicked.connect(self.getcurrent)
+        self.btn_measurecur_2.clicked.connect(self.plotcurrent)
         self.btn_takespill.clicked.connect(self.takespill)
         self.btn_exp.clicked.connect(self.exportrootfile)
         self.btn_plt.clicked.connect(self.plot)
+
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -102,6 +108,7 @@ class Ui_MainWindow(object):
         self.chk_plot.setText(_translate("MainWindow", "Plot"))
         self.btn_measurecur.setText(_translate("MainWindow", "Measure Current"))
         self.label.setText(_translate("MainWindow", "Channel"))
+        self.btn_measurecur_2.setText(_translate("MainWindow", "Plot Current"))
 
 
     def setspilllen(self):
@@ -110,8 +117,13 @@ class Ui_MainWindow(object):
 
         os.system("python takeBinaryData.py --spill_length " + str(self.spilldurr.value()) + " --command_stop")
     
+    def plotcurrent(self):
+        print("running script to plot current")     
+        print("python takeandexportroot.py " + str(self.binfilename.text()) + " --plota0 ")
+        os.system("python takeandexportroot.py " + str(self.binfilename.text()) + " --plota0 ")
+
     def getcurrent(self):
-        print("running script to set spill length")
+        print("running script to take current measurement")
         print("python takeBinaryData.py --get_current " + str(self.current_channel.value()) + " --command_stop")
 
         os.system("python takeBinaryData.py --get_current " + str(self.current_channel.value()) + " --command_stop")

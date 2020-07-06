@@ -30,6 +30,8 @@ parser.add_argument('--hist', action='store', nargs='*', type=int,
                     help='plot max adc hist for channels')
 parser.add_argument('--ahist', action='store', nargs='*', type=int,
                     help='plot area  hist for channels')
+parser.add_argument('--plota0', action='store_true',
+                    help='plot a0 current readings and stop')
 
 # Modifiers
 
@@ -54,6 +56,19 @@ def signed(val):
         return val - 4096
     return val
 
+
+def plota0(filename):
+    file = open(filename, "r")
+    lines = file.readlines()
+    ch = np.array([int(line.split(":")[0]) for line in lines])
+    a0 = [float(line.split(":")[1]) for line in lines]
+    a0 = [8.192-val if val > 4.096 else val for val in a0]
+    a0 = np.array(a0) / 8.0 * 250.0
+    #print(ch, a0)
+    plt.plot(ch, a0)
+    plt.show()
+
+
 def plotchannel(events, ch, super=False):
     plt.figure("Waveform")
     for i, indiv_event in enumerate(events[:args.pltnum]):
@@ -67,12 +82,14 @@ def plotchannel(events, ch, super=False):
             plt.title(pltttl)
             plt.show(block=False)
 
+
 def histchannel(events, ch):
     plt.figure("MAX ADC Histogram")
     maxadcvals = []
     for i, indiv_event in enumerate(events[:args.pltnum]):
         maxadcvals.append(indiv_event.maxadc[ch])
-    plt.hist(maxadcvals, bins=list(range(min(maxadcvals)-1, max(maxadcvals) + 3, 1)))
+    plt.hist(maxadcvals, bins=list(
+        range(min(maxadcvals)-1, max(maxadcvals) + 3, 1)))
     plt.xlabel('MAX ADC value in event')
     plt.ylabel('# Of events')
     plt.title("MAX ADC Histogram  CH:" + str(ch))
@@ -91,8 +108,9 @@ def ahistchannel(events, ch):
     plt.xlabel('Area around max adc value in event')
     plt.ylabel('ADC')
     plt.title("Area Around Max Histogram  CH: " + str(ch))
-    #plt.yscale('log')
+    # plt.yscale('log')
     plt.show()
+
 
 def fftchannel(events, ch, super=False):
     f_s = 1 / 12.55e-9
@@ -121,6 +139,7 @@ def fftchannel(events, ch, super=False):
     plt.xlabel('Frequency (MHz)')
     plt.show()
 
+
 def filter(events, ch):
     filteredevents = []
     for i, indiv_event in enumerate(events):  # [events[x] for x in noisy]:
@@ -128,6 +147,7 @@ def filter(events, ch):
         if max(abs(fft[8:11])) < 275:
             filteredevents.append(indiv_event)
     return filteredevents
+
 
 def exportroot(events):
     try:
@@ -170,6 +190,7 @@ def exportroot(events):
     f.Write()
     f.Close()
 
+
 class event:
     # Each event owns a dictionary that maps channels to lists of of adc values
     headerlen = 16
@@ -187,7 +208,8 @@ class event:
         self.headerraw = data[:event.headerlen]
         try:
             # See documentation from STEN
-            self.wc, self.ts, self.tc, self.sp, self.tt, self.es = struct.unpack(">HIIHHH", data[:16])
+            self.wc, self.ts, self.tc, self.sp, self.tt, self.es = struct.unpack(
+                ">HIIHHH", data[:16])
             if args.verbose:
                 print(struct.unpack(">HIIHHH", data[:16]))
         except:
@@ -203,17 +225,21 @@ class event:
                 print("bad channel")
                 break
             chno = struct.unpack(">B", data[ptr + 1:ptr + 2])[0]
-            chraw = data[ptr + 2:ptr + 2 * self.sp] # There appears to be an off-by-one in the FEB. here are sp-1 samples
-            #print(chraw.hex())
+            # There appears to be an off-by-one in the FEB. here are sp-1 samples
+            chraw = data[ptr + 2:ptr + 2 * self.sp]
+            # print(chraw.hex())
             fmt = ">%dH" % (self.sp-1)
-            self.wave[chno] = [signed(x) for x in list(struct.unpack(fmt, chraw))]
+            self.wave[chno] = [signed(x)
+                               for x in list(struct.unpack(fmt, chraw))]
             self.maxadc[chno] = max(self.wave[chno])
             self.maxidx[chno] = self.wave[chno].index(self.maxadc[chno])
-            self.area[chno] =  np.trapz(self.wave[chno][self.maxidx[chno]-2:self.maxidx[chno]+2])
+            self.area[chno] = np.trapz(
+                self.wave[chno][self.maxidx[chno]-2:self.maxidx[chno]+2])
             ptr += 2 * self.sp
             #print("GOODCH",chno, self.wave[chno])
         if args.verbose:
             print("Channels: ", list(self.wave.keys()))
+
 
 def process_file(localpath):
     f = open(localpath, "rb")
@@ -257,13 +283,17 @@ def process_file(localpath):
         events.append(event(dump[ptr:ptr + eventwdcnt * 2]))
         ptr += eventwdcnt * 2
         trgrcv += 1
-        #print("loop")
-        #quit()
+        # print("loop")
+        # quit()
     print("Triggers Expected, Processed: " + str(stc) + ", " + str(trgrcv))
 
 
+if args.plota0:
+    path = args.filename + ".a0"
+    plota0(path)
+    exit(0)
 events = []
-path = args.filename
+path = args.filename + ".bin"
 if args.directory:
     for filename in os.listdir(localpath):
         print(filename)
@@ -276,7 +306,8 @@ if args.filter:
         events = list(filter(events, channel))
 
 if events:
-    print("Length of Event[0].ch%d: " % next(iter(events[0].wave.keys())), len(next(iter(events[0].wave.values()))))  # TODO
+    print("Length of Event[0].ch%d: " % next(iter(events[0].wave.keys())), len(
+        next(iter(events[0].wave.values()))))  # TODO
     print("Number of Events Processed: ", len(events))
 
     if args.root:
