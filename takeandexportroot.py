@@ -32,7 +32,8 @@ parser.add_argument('--ahist', action='store', nargs='*', type=int,
                     help='plot area  hist for channels')
 parser.add_argument('--plota0', action='store_true',
                     help='plot a0 current readings and stop')
-
+parser.add_argument('--darkrate', action='store_true',
+                    help='plot dark rate measurements')
 # Modifiers
 
 parser.add_argument('--super', action='store_true',
@@ -43,6 +44,8 @@ parser.add_argument('--filter', action='store', nargs='*',
                     help='filter based on following channels.  Currently filter settings must be changed by editing code')
 parser.add_argument('--verbose', action='store_true',
                     help='prints additional info')
+parser.add_argument('--exact_name', action='store_true',
+                    help='uses exact filename')
 
 # ROOT
 parser.add_argument('--root', action='store',
@@ -82,6 +85,24 @@ def plotchannel(events, ch, super=False):
             plt.title(pltttl)
             plt.show(block=False)
 
+def plotdarkrate(events):
+    counts = {}
+    ticks = {}
+    for i, indiv_event in enumerate(events[:args.pltnum]):
+        for ch in indiv_event.pulsecount.keys():
+            if not ch in counts:
+                counts[ch] = 0
+                ticks[ch]=0
+            #print("hi", ch, counts[ch], ticks[ch])
+            counts[ch] += indiv_event.pulsecount[ch]
+            ticks[ch] += len(indiv_event.wave[ch])
+    countlist = sorted(counts.items())
+    tickslist = sorted(ticks.items())
+    counts = np.array(list((x[1] for x in countlist)))
+    ticks = np.array(list((x[1] for x in tickslist)))
+    charr = np.array(list((x[0] for x in tickslist)))
+    rate = counts/ticks * 8 * 10**7
+    plt.plot(charr, rate)
 
 def histchannel(events, ch):
     plt.figure("MAX ADC Histogram")
@@ -195,12 +216,15 @@ class event:
     # Each event owns a dictionary that maps channels to lists of of adc values
     headerlen = 16
     maxlen = 0
+    threshold = 5
 
     def __init__(self, data):
         self.wave = {}
         self.maxadc = {}
         self.maxidx = {}
         self.area = {}
+        self.pulsecount = {}
+        self.pedistal = {}
         self.raw = data
         self.extract(data)
 
@@ -229,12 +253,15 @@ class event:
             chraw = data[ptr + 2:ptr + 2 * self.sp]
             # print(chraw.hex())
             fmt = ">%dH" % (self.sp-1)
-            self.wave[chno] = [signed(x)
-                               for x in list(struct.unpack(fmt, chraw))]
+            self.wave[chno] = np.array([signed(x)
+                               for x in list(struct.unpack(fmt, chraw))])
+            self.pedistal[chno] = int(np.average(self.wave[chno][:20]))  #Define the pedistal by taking the average of the first 20 ticks
             self.maxadc[chno] = max(self.wave[chno])
-            self.maxidx[chno] = self.wave[chno].index(self.maxadc[chno])
+            self.maxidx[chno] = np.where(self.wave[chno] == (self.maxadc[chno]))[0][0]
             self.area[chno] = np.trapz(
                 self.wave[chno][self.maxidx[chno]-2:self.maxidx[chno]+2])
+            self.pulsecount[chno] = np.sum(np.logical_and((np.sign(self.wave[chno] - self.pedistal[chno] - event.threshold)>0),
+                                                          (np.diff(self.wave[chno] - self.pedistal[chno] - event.threshold, prepend = 0)>0)))
             ptr += 2 * self.sp
             #print("GOODCH",chno, self.wave[chno])
         if args.verbose:
@@ -293,7 +320,9 @@ if args.plota0:
     plota0(path)
     exit(0)
 events = []
-path = args.filename + ".bin"
+path = args.filename
+if not args.exact_name:
+    path = path + ".bin"
 if args.directory:
     for filename in os.listdir(localpath):
         print(filename)
@@ -317,8 +346,11 @@ if events:
     if args.p:
         pltttl = "CH: "
         for channel in args.p:
-            pltttl = pltttl + str(channel) + " "
+            pltttl = pltttl + str(channel) + " " #plot title
             plotchannel(events, channel, super=args.super)
+
+    if args.darkrate:
+        plotdarkrate(events)
 
     if args.hist:
         for channel in args.hist:

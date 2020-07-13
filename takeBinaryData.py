@@ -23,11 +23,22 @@ parser.add_argument('--command',
                     help='run command on board, then take data')
 parser.add_argument('--command_stop', action='store_true',
                     help='run command on board, then stop')
+parser.add_argument('--debug', action='store_true',
+                    help='prints extra debug info')
+parser.add_argument('--setup', action='store_true',
+                    help='runs board setup')
 parser.add_argument('--spill_length', action='store',
                     help='sets the spill length. HEX')
 parser.add_argument('--get_current', action='store',
                     help='gets the current for a given chanel')
-
+parser.add_argument('--set_voltage', action='store',
+                    help='set voltage (DANGER)', type=float)
+parser.add_argument('--read_voltage', action='store_true',
+                    help='read voltage')
+parser.add_argument('--v_ch', action='store',
+                    help='the register to write voltage. use -1 for all')
+parser.add_argument('--force_voltage', action='store_true',
+                    help='override 62v limit')
 args = parser.parse_args()
 # print args
 s = socket.socket()
@@ -83,10 +94,43 @@ def read_current_channel(channel, debug):
     readval = rd_board(debug)
     return readval
 
+if args.setup == True:
+    setupfile = open("setup.ds")
+    setuplines = setupfile.read().splitlines()
+    for line in setuplines:
+        s.send(line.split("#")[0] + "\r")
+        rd_board(args.debug)
+        #print(line.split("#")[0] + "\r")
+
+if args.set_voltage != None:
+    if args.set_voltage > 62 and not args.force_voltage:
+        print ("Voltage over 62 is restricted.  use --force_voltage to override")
+        exit()
+    V = int(args.set_voltage / 5.38 * 256)
+    hex_V = '{:02x}'.format(V)
+    print("Setting voltage hex code to: " + hex_V)
+    if args.v_ch == "-1":
+        indx_lst = ['0', '4', '8', 'C']
+        for fpga in indx_lst:
+            s.send('wr {}44 {} \r'.format(fpga, hex_V))
+            rd_board(args.debug)
+            s.send('wr {}45 {} \r'.format(fpga, hex_V))
+            rd_board(args.debug)
+    elif args.v_ch:
+        s.send('wr {} {} \r'.format(args.v_ch, hex_V))
+        rd_board(args.debug)
+    else:
+        print("Choose a channel. Voltage setting failed")
+
+if args.read_voltage == True:
+    s.send("adc \r")
+    time.sleep(.5)
+    rd_board(args.debug)
+    rd_board(1)
 
 if args.get_current != None:
     addr = int(args.get_current)
-    debug = 0
+    debug = args.debug
     if addr == -1:
         if os.path.isfile(args.filename + ".a0") and not args.overwrite:
             print("File Already exists. Exiting. use --overwrite to ignore")
