@@ -110,12 +110,12 @@ def histchannel(events, ch):
     for i, indiv_event in enumerate(events[:args.pltnum]):
         maxadcvals.append(indiv_event.maxadc[ch])
     plt.hist(maxadcvals, bins=list(
-        range(min(maxadcvals)-1, max(maxadcvals) + 3, 1)))
+        range(min(maxadcvals)-1, max(maxadcvals) + 3, 1)), histtype='step')
     plt.xlabel('MAX ADC value in event')
     plt.ylabel('# Of events')
     plt.title("MAX ADC Histogram  CH:" + str(ch))
     plt.yscale('log')
-    plt.show()
+    #plt.show()
 
 
 def ahistchannel(events, ch):
@@ -124,13 +124,13 @@ def ahistchannel(events, ch):
     for i, indiv_event in enumerate(events[:args.pltnum]):
         areavals.append(indiv_event.area[ch])
     # range(int(floor(min(areavals))), int(ceil(max(areavals))) + 1, 1))
-    plt.hist(areavals, bins=50)
+    plt.hist(areavals, bins=50, histtype='step')
 
     plt.xlabel('Area around max adc value in event')
     plt.ylabel('ADC')
     plt.title("Area Around Max Histogram  CH: " + str(ch))
     # plt.yscale('log')
-    plt.show()
+    #plt.show()
 
 
 def fftchannel(events, ch, super=False):
@@ -355,10 +355,12 @@ if events:
     if args.hist:
         for channel in args.hist:
             histchannel(events, channel)
+        plt.show()
 
     if args.ahist:
         for channel in args.ahist:
             ahistchannel(events, channel)
+        plt.show()
 
     if args.fft:
         pltttl = "FFT CH: "
