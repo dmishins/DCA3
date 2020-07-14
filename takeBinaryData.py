@@ -125,7 +125,6 @@ if args.set_voltage != None:
 if args.read_voltage == True:
     s.send("adc \r")
     time.sleep(.5)
-    rd_board(args.debug)
     rd_board(1)
 
 if args.get_current != None:

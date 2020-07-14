@@ -1,0 +1,12 @@
+trig 1 #Look for triggers on smb input
+wr 0 0 #Turn on FPGA 0 (set to 3 to turn off)
+wr 400 0 #Turn on FPGA1
+wr 800 0 #Turn on FPGA2
+wr c00 0 #Turn on FPGA3
+wr 304 10 #Sets "pipeline Delay". Means waveforms begin 10 ticks (125ns) before trigger
+wr 305 3f0 #Sets number of samples per waveform to be 1008. Requires new firmware. or, set to f0
+wr 307 0 #Turn off internal triggering
+wr 306 0 #Turn off internal triggering
+wr 308 2 # Set spill length to 2s
+wr 309 4 # prevents issues with the board freezing
+wr 30b c0 # prevents issues with the board freezing
