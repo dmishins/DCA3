@@ -90,8 +90,8 @@ def read_current_channel(channel, debug):
     s.send('gain 8 \r')
     rd_board(debug)
     s.send('a0 1 \r')
-    rd_board(debug)  # get back echo?
-    readval = rd_board(debug)
+    #rd_board(debug)  # get back echo?
+    readval = rd_board(debug).splitlines()[0]
     return readval
 
 if args.setup == True:

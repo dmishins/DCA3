@@ -355,11 +355,15 @@ if events:
     if args.hist:
         for channel in args.hist:
             histchannel(events, channel)
+            if not args.super:
+                plt.show()
         plt.show()
 
     if args.ahist:
         for channel in args.ahist:
             ahistchannel(events, channel)
+            if not args.super
+                plt.show()
         plt.show()
 
     if args.fft:
