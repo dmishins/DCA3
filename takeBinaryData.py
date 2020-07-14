@@ -92,6 +92,12 @@ def read_current_channel(channel, debug):
     s.send('a0 1 \r')
     #rd_board(debug)  # get back echo?
     readval = rd_board(debug).splitlines()[0]
+    count = 0
+    while (readval == ">" and count < 3):
+        s.send('a0 1 \r')
+        # rd_board(debug)  # get back echo?
+        readval = rd_board(debug).splitlines()[0]
+        count += 1
     return readval
 
 if args.setup == True:

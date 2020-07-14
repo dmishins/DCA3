@@ -68,7 +68,7 @@ def plota0(filename):
     a0 = [8.192-val if val > 4.096 else val for val in a0]
     a0 = np.array(a0) / 8.0 * 250.0
     #print(ch, a0)
-    plt.plot(ch, a0)
+    plt.plot(ch, a0, marker='o')
     plt.show()
 
 
@@ -307,6 +307,7 @@ def process_file(localpath):
         #print(ptr, dump[ptr:ptr+20])
         eventwdcnt = struct.unpack(">H", dump[ptr:ptr + 2])[0]
         #print(dump[ptr:ptr + 2], eventwdcnt)
+        print("here")
         events.append(event(dump[ptr:ptr + eventwdcnt * 2]))
         ptr += eventwdcnt * 2
         trgrcv += 1
@@ -362,7 +363,7 @@ if events:
     if args.ahist:
         for channel in args.ahist:
             ahistchannel(events, channel)
-            if not args.super
+            if not args.super:
                 plt.show()
         plt.show()
 
