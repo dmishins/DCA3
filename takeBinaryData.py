@@ -41,12 +41,17 @@ parser.add_argument('--force_voltage', action='store_true',
                     help='override 62v limit')
 args = parser.parse_args()
 # print args
-s = socket.socket()
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.settimeout(10)
-s.connect((args.daphne_addr, args.daphne_port))
+class connection:
+    s = socket.socket()
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.settimeout(10)
+    s.connect((args.daphne_addr, args.daphne_port))
+    def recv(n):
+        return s.recv(n)
+    def send(str):
+        return s.send(str.encode())
 
-
+s = connection()
 def rd_board(debug):
     rd = s.recv(1024)
     if debug:
