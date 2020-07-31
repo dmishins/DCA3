@@ -7,7 +7,11 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import os
+def do(str):
+    print(str)
+    os.system(str)
+    
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -155,9 +159,7 @@ class Ui_MainWindow(object):
         self.chk_darkrate.setText(_translate("MainWindow", "Dark Rate"))
         self.chk_pseudogain.setText(_translate("MainWindow", "Pseudo-Gain"))
 
-    def do(str):
-        print(str)
-        os.system(str)
+
 
     def setupboard(self):
         print("running script to setup board")
