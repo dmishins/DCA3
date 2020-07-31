@@ -119,9 +119,9 @@ class Ui_MainWindow(object):
         self.btn_takespill.clicked.connect(self.takespill)
         self.btn_exp.clicked.connect(self.exportrootfile)
         self.btn_plt.clicked.connect(self.plot)
-        self.btn_setupboard.connect(self.setupboard)
-        self.btn_setv.connect(self.setv)
-        self.btn_readadc.connect(self.readadc)
+        self.btn_setupboard.clicked.connect(self.setupboard)
+        self.btn_setv.clicked.connect(self.setv)
+        self.btn_readadc.clicked.connect(self.readadc)
 
 
 

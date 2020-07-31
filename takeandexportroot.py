@@ -76,6 +76,8 @@ def plotchannel(events, ch, super=False):
     plt.figure("Waveform")
     for i, indiv_event in enumerate(events[:args.pltnum]):
         plt.plot(indiv_event.wave[ch], label=("EV: " + str(i)))
+        if args.verbose:
+            print(indiv_event.wave[ch])
         plt.xlabel('ticks (12.55 ns)')
         plt.ylabel('ADC')
         if super == False:
@@ -307,7 +309,7 @@ def process_file(localpath):
         #print(ptr, dump[ptr:ptr+20])
         eventwdcnt = struct.unpack(">H", dump[ptr:ptr + 2])[0]
         #print(dump[ptr:ptr + 2], eventwdcnt)
-        print("here")
+        #print("here")
         events.append(event(dump[ptr:ptr + eventwdcnt * 2]))
         ptr += eventwdcnt * 2
         trgrcv += 1

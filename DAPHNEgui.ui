@@ -280,12 +280,12 @@
      <rect>
       <x>150</x>
       <y>30</y>
-      <width>121</width>
+      <width>141</width>
       <height>21</height>
      </rect>
     </property>
     <property name="text">
-     <string>(-1=all, ex. 445=ch24-31)</string>
+     <string>ch. (-1=all, ex. 445=ch24-31)</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_readadc">
