@@ -41,18 +41,30 @@ parser.add_argument('--force_voltage', action='store_true',
                     help='override 62v limit')
 args = parser.parse_args()
 # print args
-s = socket.socket()
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.settimeout(10)
-s.connect((args.daphne_addr, args.daphne_port))
+class connection:
+    s = socket.socket()
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.settimeout(10)
+    s.connect((args.daphne_addr, args.daphne_port))
+    def recv(self, n):
+        return self.s.recv(n)
+    def send(self, val):
+        #print(self, val)
+        if (isinstance(val, str)):
+             return self.s.send(val.encode())
+        else:
+            return self.s.send(val)
+    def settimeout(self, n):
+        self.s.settimeout(n)
+    def close(self):
+        self.s.close()
 
-
+s = connection()
 def rd_board(debug):
     rd = s.recv(1024)
     if debug:
-        print(rd)
+        print("\n".join(rd.decode().splitlines()))
     return rd
-
 
 def read_current_channel(channel, debug):
     indx_lst = ['0', '4', '8', 'C']
@@ -79,13 +91,13 @@ def read_current_channel(channel, debug):
     else:
         s.send('mux {} \r'.format(board_indx))
         rd_board(debug)
-        time.sleep(.5)
+        time.sleep(.1)
         s.send('wr {} 1{} \r'.format(board, indx_lst[port_indx]))
         rd_board(debug)
-        time.sleep(.5)
+        time.sleep(.1)
         s.send('wr 20 0{} \r'.format(port_num))
         rd_board(debug)
-        time.sleep(.5)
+        time.sleep(.1)
 
     s.send('gain 8 \r')
     rd_board(debug)
@@ -93,12 +105,16 @@ def read_current_channel(channel, debug):
     #rd_board(debug)  # get back echo?
     readval = rd_board(debug).splitlines()[0]
     count = 0
-    while (readval == ">" and count < 3):
-        s.send('a0 1 \r')
+    print(readval)
+    while (readval == b">" and count < 3):
+        print("Bad read(ch, val): {}, {}".format(channel, readval))
+        s.send('a0 5 \r')
         # rd_board(debug)  # get back echo?
-        readval = rd_board(debug).splitlines()[0]
+        readval = rd_board(debug)#.splitlines()[0]
+        print("after: {} ".format(readval))
+        time.sleep(.4)
         count += 1
-    return readval
+    return readval.decode()
 
 if args.setup == True:
     setupfile = open("setup.ds")
@@ -186,11 +202,11 @@ if os.path.isfile(filepath) and not args.overwrite:
     exit(1)
 
 
-file = open(filepath, "w")
+file = open(filepath, "wb")
 
 st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-file.write(str(ts))
-file.write('\n')
+file.write(str(ts).encode())
+file.write(b'\n')
 RD_LEN = 1024
 
 # print "filepath: " + filepath
@@ -206,23 +222,23 @@ else:
     time.sleep(2)
 s.send('rd 67\r')
 time.sleep(.25)
-print("READ 67: ", re.search(r'[0-9A-F]+', s.recv(1024)).group())
+print("READ 67: ", re.search(r'[0-9A-F]+', s.recv(1024).decode()).group())
 count = 0
 while True:
     print("Checking if spill done")
     s.send('rd 303\r')
     time.sleep(.1)
-    rd303 = re.search(r'[0-9A-F]+', s.recv(1024)).group()
+    rd303 = re.search(r'[0-9A-F]+', s.recv(1024).decode()).group()
     print("Spill Reg value:", rd303)
     time.sleep(.1)
     s.send('rd 67\r')
     if rd303 == "0000":
         print("Spill Done. 67: ", re.search(
-            r'[0-9A-F]+', s.recv(1024)).group())
+            r'[0-9A-F]+', s.recv(1024).decode()).group())
         break
     count += 1
     print("Spill Not Done. 67: ", re.search(
-        r'[0-9A-F]+', s.recv(1024)).group(), " count is:", count)
+        r'[0-9A-F]+', s.recv(1024).decode()).group(), " count is:", count)
     time.sleep(1)
 s.settimeout(1)
 try:

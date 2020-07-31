@@ -18,8 +18,8 @@ parser.add_argument('--ignore_timestamp', action='store_true',
                     help='ignore timestamp')
 parser.add_argument('--PROMPT1', action='store_true',
                     help='Skip one prompt at the beginning of the spill (after wc)')
-parser.add_argument('--PROMPT2', action='store_true',
-                    help='Skip one prompt at the beginning of the spill (after header)')
+parser.add_argument('--PROMPT2', action='store_false',
+                    help='DO NOT Skip one prompt at the beginning of the spill (after header)')
 
 # Actions
 parser.add_argument('-p', action='store', nargs='*', type=int,
@@ -44,6 +44,9 @@ parser.add_argument('--filter', action='store', nargs='*',
                     help='filter based on following channels.  Currently filter settings must be changed by editing code')
 parser.add_argument('--verbose', action='store_true',
                     help='prints additional info')
+
+parser.add_argument('--verbose2', action='store_true',
+                    help='prints additional info(waveforms of plots)')
 parser.add_argument('--exact_name', action='store_true',
                     help='uses exact filename')
 
@@ -75,17 +78,20 @@ def plota0(filename):
 def plotchannel(events, ch, super=False):
     plt.figure("Waveform")
     for i, indiv_event in enumerate(events[:args.pltnum]):
-        plt.plot(indiv_event.wave[ch], label=("EV: " + str(i)))
-        if args.verbose:
-            print(indiv_event.wave[ch])
-        plt.xlabel('ticks (12.55 ns)')
-        plt.ylabel('ADC')
-        if super == False:
-            plt.title("CH: " + str(ch) + " Event: " + str(i))
-            plt.show()
-        else:
-            plt.title(pltttl)
-            plt.show(block=False)
+        if ch in indiv_event.wave:
+            plt.plot(indiv_event.wave[ch], label=("EV: " + str(i)))
+            if args.verbose2:
+                print(indiv_event.wave[ch])
+            plt.xlabel('ticks (12.55 ns)')
+            plt.ylabel('ADC')
+            if super == False:
+                plt.title("CH: " + str(ch) + " Trigger: " +
+                          str(indiv_event.tc))
+                plt.show()
+            else:
+                plt.title(pltttl)
+                plt.show(block=False)
+
 
 def plotdarkrate(events):
     counts = {}
@@ -94,7 +100,7 @@ def plotdarkrate(events):
         for ch in indiv_event.pulsecount.keys():
             if not ch in counts:
                 counts[ch] = 0
-                ticks[ch]=0
+                ticks[ch] = 0
             #print("hi", ch, counts[ch], ticks[ch])
             counts[ch] += indiv_event.pulsecount[ch]
             ticks[ch] += len(indiv_event.wave[ch])
@@ -106,25 +112,28 @@ def plotdarkrate(events):
     rate = counts/ticks * 8 * 10**7
     plt.plot(charr, rate)
 
+
 def histchannel(events, ch):
     plt.figure("MAX ADC Histogram")
     maxadcvals = []
     for i, indiv_event in enumerate(events[:args.pltnum]):
-        maxadcvals.append(indiv_event.maxadc[ch])
+        if ch in indiv_event.wave:
+            maxadcvals.append(indiv_event.maxadc[ch])
     plt.hist(maxadcvals, bins=list(
         range(min(maxadcvals)-1, max(maxadcvals) + 3, 1)), histtype='step')
     plt.xlabel('MAX ADC value in event')
     plt.ylabel('# Of events')
     plt.title("MAX ADC Histogram  CH:" + str(ch))
     plt.yscale('log')
-    #plt.show()
+    # plt.show()
 
 
 def ahistchannel(events, ch):
     plt.figure("Area Histogram")
     areavals = []
     for i, indiv_event in enumerate(events[:args.pltnum]):
-        areavals.append(indiv_event.area[ch])
+        if ch in indiv_event.wave:
+            areavals.append(indiv_event.area[ch])
     # range(int(floor(min(areavals))), int(ceil(max(areavals))) + 1, 1))
     plt.hist(areavals, bins=50, histtype='step')
 
@@ -132,7 +141,7 @@ def ahistchannel(events, ch):
     plt.ylabel('ADC')
     plt.title("Area Around Max Histogram  CH: " + str(ch))
     # plt.yscale('log')
-    #plt.show()
+    # plt.show()
 
 
 def fftchannel(events, ch, super=False):
@@ -141,22 +150,23 @@ def fftchannel(events, ch, super=False):
     plt.figure("FFT")
     totalfft = np.zeros(239, dtype=np.complex128)
     for i, indiv_event in enumerate(events[:args.pltnum]):
-        evchdata = indiv_event.wave[ch]
-        eventfft = np.fft.fft(evchdata)
-        freqs = np.fft.fftfreq(len(evchdata)) * f_s
-        if np.shape(eventfft) == (239,):
-            totalfft = totalfft + abs(eventfft)
-        else:
-            print("Bad FFT")
-        # plt.xlim(0,f_s//1e6//2)
-        # plt.title(ch + " FFT")
-        # plt.ylim((0, 30000))
+        if ch in indiv_event.wave:
+            evchdata = indiv_event.wave[ch]
+            eventfft = np.fft.fft(evchdata)
+            freqs = np.fft.fftfreq(len(evchdata)) * f_s
+            if np.shape(eventfft) == (239,):
+                totalfft = totalfft + abs(eventfft)
+            else:
+                print("Bad FFT")
+            # plt.xlim(0,f_s//1e6//2)
+            # plt.title(ch + " FFT")
+            # plt.ylim((0, 30000))
 
-        # plt.title(ch)
-        if super == False:
-            plt.plot(abs(freqs/1e6), abs(eventfft))
-            plt.title(str(ch) + " Event: " + str(i + 1))
-            plt.show()
+            # plt.title(ch)
+            if super == False:
+                plt.plot(abs(freqs/1e6), abs(eventfft))
+                plt.title(str(ch) + " Event: " + str(i + 1))
+                plt.show()
     plt.plot(abs(freqs / 1e6), abs(totalfft))
     plt.title("Total (Sum) FFT CH: " + str(ch))
     plt.xlabel('Frequency (MHz)')
@@ -245,7 +255,7 @@ class event:
             event.maxlen = self.wc
 
         ptr = event.headerlen
-        while ptr < self.wc:
+        while ptr < self.wc*2:
             if not (data[ptr:ptr + 1] == b"\x80"):
                 print(ptr, data[ptr:ptr + 5].hex())
                 print("bad channel")
@@ -256,14 +266,16 @@ class event:
             # print(chraw.hex())
             fmt = ">%dH" % (self.sp-1)
             self.wave[chno] = np.array([signed(x)
-                               for x in list(struct.unpack(fmt, chraw))])
-            self.pedistal[chno] = int(np.average(self.wave[chno][:20]))  #Define the pedistal by taking the average of the first 20 ticks
+                                        for x in list(struct.unpack(fmt, chraw))])
+            # Define the pedistal by taking the average of the first 20 ticks
+            self.pedistal[chno] = int(np.average(self.wave[chno][:20]))
             self.maxadc[chno] = max(self.wave[chno])
-            self.maxidx[chno] = np.where(self.wave[chno] == (self.maxadc[chno]))[0][0]
+            self.maxidx[chno] = np.where(
+                self.wave[chno] == (self.maxadc[chno]))[0][0]
             self.area[chno] = np.trapz(
                 self.wave[chno][self.maxidx[chno]-2:self.maxidx[chno]+2])
-            self.pulsecount[chno] = np.sum(np.logical_and((np.sign(self.wave[chno] - self.pedistal[chno] - event.threshold)>0),
-                                                          (np.diff(self.wave[chno] - self.pedistal[chno] - event.threshold, prepend = 0)>0)))
+            self.pulsecount[chno] = np.sum(np.logical_and((np.sign(self.wave[chno] - self.pedistal[chno] - event.threshold) > 0),
+                                                          (np.diff(self.wave[chno] - self.pedistal[chno] - event.threshold, prepend=0) > 0)))
             ptr += 2 * self.sp
             #print("GOODCH",chno, self.wave[chno])
         if args.verbose:
@@ -308,8 +320,9 @@ def process_file(localpath):
     while ptr < swc*2 + promptcount:
         #print(ptr, dump[ptr:ptr+20])
         eventwdcnt = struct.unpack(">H", dump[ptr:ptr + 2])[0]
+        #wc, ts, tc, sp, tt, es = struct.unpack(">HIIHHH", data[:16])
         #print(dump[ptr:ptr + 2], eventwdcnt)
-        #print("here")
+        # print("here")
         events.append(event(dump[ptr:ptr + eventwdcnt * 2]))
         ptr += eventwdcnt * 2
         trgrcv += 1
@@ -349,7 +362,7 @@ if events:
     if args.p:
         pltttl = "CH: "
         for channel in args.p:
-            pltttl = pltttl + str(channel) + " " #plot title
+            pltttl = pltttl + str(channel) + " "  # plot title
             plotchannel(events, channel, super=args.super)
 
     if args.darkrate:
