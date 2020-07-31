@@ -104,7 +104,7 @@ if args.setup == True:
     setupfile = open("setup.ds")
     setuplines = setupfile.read().splitlines()
     for line in setuplines:
-        s.send(line.split("#")[0] + "\r")
+        s.send((line.split("#")[0] + "\r").encode())
         rd_board(args.debug)
         #print(line.split("#")[0] + "\r")
 
