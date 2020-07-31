@@ -7,7 +7,11 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import os
+def do(str):
+    print(str)
+    os.system(str)
+    
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -155,9 +159,7 @@ class Ui_MainWindow(object):
         self.chk_darkrate.setText(_translate("MainWindow", "Dark Rate"))
         self.chk_pseudogain.setText(_translate("MainWindow", "Pseudo-Gain"))
 
-    def do(str):
-        print(str)
-        os.system(str)
+
 
     def setupboard(self):
         print("running script to setup board")
@@ -165,16 +167,16 @@ class Ui_MainWindow(object):
 
     def setv(self):
         print("Setting voltage")
-        do("python takeBinaryData.py --set_voltage " + str(self.text_v_val.value()) + " --v_ch " + str(self.text_v_ch.value()) + " --command_stop")
+        do("python takeBinaryData.py --set_voltage " + str(self.text_v_val.text()) + " --v_ch " + str(self.text_v_ch.text()) + " --command_stop")
 
     def readadc(self):
         print("Reading ADC: ")
         do("python takeBinaryData.py --read_voltage --command_stop")
     def setspilllen(self):
         print("running script to set spill length")
-        print("python takeBinaryData.py --spill_length " + str(self.spilldurr.value()) + " --command_stop")
+        print("python takeBinaryData.py --spill_length " + str(self.spilldurr.text()) + " --command_stop")
 
-        os.system("python takeBinaryData.py --spill_length " + str(self.spilldurr.value()) + " --command_stop")
+        os.system("python takeBinaryData.py --spill_length " + str(self.spilldurr.text()) + " --command_stop")
     
     def plotcurrent(self):
         print("running script to plot current")     
@@ -183,9 +185,9 @@ class Ui_MainWindow(object):
 
     def getcurrent(self):
         print("running script to take current measurement")
-        print("python takeBinaryData.py --get_current " + str(self.current_channel.value()) + " --command_stop")
+        print("python takeBinaryData.py --get_current " + str(self.current_channel.text()) + " --command_stop")
 
-        os.system("python takeBinaryData.py --get_current " + str(self.current_channel.value()) + " --command_stop")
+        os.system("python takeBinaryData.py --get_current " + str(self.current_channel.text()) + " --command_stop")
 
     def takespill(self):
         print("running take spill")
