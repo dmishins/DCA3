@@ -330,7 +330,11 @@ def process_file(localpath):
         # quit()
     print("Triggers Expected, Processed: " + str(stc) + ", " + str(trgrcv))
 
-
+print("HI 123", args.p)
+if args.p == [-1]:
+    plotargs = list(range(63))
+else:
+    plotargs = args.p
 if args.plota0:
     path = args.filename + ".a0"
     plota0(path)
@@ -361,7 +365,7 @@ if events:
     print(args.p)
     if args.p:
         pltttl = "CH: "
-        for channel in args.p:
+        for channel in plotargs:
             pltttl = pltttl + str(channel) + " "  # plot title
             plotchannel(events, channel, super=args.super)
 
