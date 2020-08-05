@@ -77,8 +77,10 @@ def plota0(filename):
 
 def plotchannel(events, ch, super=False):
     plt.figure("Waveform")
-    for i, indiv_event in enumerate(events[:args.pltnum]):
+    count = 0
+    for i, indiv_event in enumerate(events):
         if ch in indiv_event.wave:
+            count +=1
             plt.plot(indiv_event.wave[ch], label=("EV: " + str(i)))
             if args.verbose2:
                 print(indiv_event.wave[ch])
@@ -91,12 +93,17 @@ def plotchannel(events, ch, super=False):
             else:
                 plt.title(pltttl)
                 plt.show(block=False)
+        if count == args.pltnum:
+           break
+           
+    #plt.show()       
 
 
 def plotdarkrate(events):
     counts = {}
     ticks = {}
-    for i, indiv_event in enumerate(events[:args.pltnum]):
+    count = 0
+    for i, indiv_event in enumerate(events):
         for ch in indiv_event.pulsecount.keys():
             if not ch in counts:
                 counts[ch] = 0
@@ -146,11 +153,13 @@ def ahistchannel(events, ch):
 
 def fftchannel(events, ch, super=False):
     f_s = 1 / 12.55e-9
-
+    freqs = np.zeros(239, dtype=np.complex128)
+    count = 0
     plt.figure("FFT")
     totalfft = np.zeros(239, dtype=np.complex128)
-    for i, indiv_event in enumerate(events[:args.pltnum]):
+    for i, indiv_event in enumerate(events):
         if ch in indiv_event.wave:
+            count +=1
             evchdata = indiv_event.wave[ch]
             eventfft = np.fft.fft(evchdata)
             freqs = np.fft.fftfreq(len(evchdata)) * f_s
@@ -167,7 +176,8 @@ def fftchannel(events, ch, super=False):
                 plt.plot(abs(freqs/1e6), abs(eventfft))
                 plt.title(str(ch) + " Event: " + str(i + 1))
                 plt.show()
-    plt.plot(abs(freqs / 1e6), abs(totalfft))
+        if count == args.pltnum:
+           break
     plt.title("Total (Sum) FFT CH: " + str(ch))
     plt.xlabel('Frequency (MHz)')
     plt.show()
@@ -364,6 +374,7 @@ if events:
         for channel in args.p:
             pltttl = pltttl + str(channel) + " "  # plot title
             plotchannel(events, channel, super=args.super)
+            plt.show()
 
     if args.darkrate:
         plotdarkrate(events)

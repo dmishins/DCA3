@@ -48,6 +48,11 @@ class connection:
     s.connect((args.daphne_addr, args.daphne_port))
     def recv(self, n):
         return self.s.recv(n)
+    def quickrecv(self, n, t):
+        s.settimeout(t)
+        tmp = self.s.recv(n)
+        s.settimeout(10)
+        return tmp
     def send(self, val):
         #print(self, val)
         if (isinstance(val, str)):
@@ -101,19 +106,11 @@ def read_current_channel(channel, debug):
 
     s.send('gain 8 \r')
     rd_board(debug)
-    s.send('a0 1 \r')
+    s.send('a0 3 \r')
+    time.sleep(.5)
     #rd_board(debug)  # get back echo?
-    readval = rd_board(debug).splitlines()[0]
-    count = 0
-    print(readval)
-    while (readval == b">" and count < 3):
-        print("Bad read(ch, val): {}, {}".format(channel, readval))
-        s.send('a0 5 \r')
-        # rd_board(debug)  # get back echo?
-        readval = rd_board(debug)#.splitlines()[0]
-        print("after: {} ".format(readval))
-        time.sleep(.4)
-        count += 1
+    readval = rd_board(debug).splitlines()[-2].split(b" ")[0]
+    print("READ (ch, val): {}, {}".format(channel, readval))
     return readval.decode()
 
 if args.setup == True:
