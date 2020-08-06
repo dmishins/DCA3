@@ -207,6 +207,7 @@ class Ui_MainWindow(object):
         ahist = ""
         hist = ""
         plot = ""
+        dark = ""
         ch =self.plainTextEdit.toPlainText()
         if self.chk_super.checkState():
             super = " --super "
@@ -218,9 +219,11 @@ class Ui_MainWindow(object):
             hist = " --hist " + ch
         if self.chk_plot.checkState():
             plot  = " -p " + ch
+        if self.chk_darkrate.checkState():
+            dark  = " --darkrate"
 
 
-        do("python takeandexportroot.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist )
+        do("python takeandexportroot.py " + str(self.binfilename.text()) + plot + super + fft + ahist + hist + dark)
 
 
 

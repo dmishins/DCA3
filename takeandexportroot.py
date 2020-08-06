@@ -95,11 +95,14 @@ def plotchannel(events, ch, super=False):
                 plt.show(block=False)
         if count == args.pltnum:
            break
-           
+    if super == True:
+        plt.show()
+
     #plt.show()       
 
 
 def plotdarkrate(events):
+    print("darkratehere")
     counts = {}
     ticks = {}
     count = 0
@@ -117,13 +120,14 @@ def plotdarkrate(events):
     ticks = np.array(list((x[1] for x in tickslist)))
     charr = np.array(list((x[0] for x in tickslist)))
     rate = counts/ticks * 8 * 10**7
-    plt.plot(charr, rate)
-
+    plt.scatter(charr, rate)
+    plt.xlabel("Channel")
+    plt.show()
 
 def histchannel(events, ch):
     plt.figure("MAX ADC Histogram")
     maxadcvals = []
-    for i, indiv_event in enumerate(events[:args.pltnum]):
+    for i, indiv_event in enumerate(events[:]):
         if ch in indiv_event.wave:
             maxadcvals.append(indiv_event.maxadc[ch])
     plt.hist(maxadcvals, bins=list(
@@ -132,13 +136,13 @@ def histchannel(events, ch):
     plt.ylabel('# Of events')
     plt.title("MAX ADC Histogram  CH:" + str(ch))
     plt.yscale('log')
-    # plt.show()
+    plt.show()
 
 
 def ahistchannel(events, ch):
     plt.figure("Area Histogram")
     areavals = []
-    for i, indiv_event in enumerate(events[:args.pltnum]):
+    for i, indiv_event in enumerate(events[:]):
         if ch in indiv_event.wave:
             areavals.append(indiv_event.area[ch])
     # range(int(floor(min(areavals))), int(ceil(max(areavals))) + 1, 1))
@@ -148,7 +152,7 @@ def ahistchannel(events, ch):
     plt.ylabel('ADC')
     plt.title("Area Around Max Histogram  CH: " + str(ch))
     # plt.yscale('log')
-    # plt.show()
+    plt.show()
 
 
 def fftchannel(events, ch, super=False):
@@ -159,7 +163,6 @@ def fftchannel(events, ch, super=False):
     totalfft = np.zeros(239, dtype=np.complex128)
     for i, indiv_event in enumerate(events):
         if ch in indiv_event.wave:
-            count +=1
             evchdata = indiv_event.wave[ch]
             eventfft = np.fft.fft(evchdata)
             freqs = np.fft.fftfreq(len(evchdata)) * f_s
@@ -174,14 +177,19 @@ def fftchannel(events, ch, super=False):
             # plt.title(ch)
             if super == False:
                 plt.plot(abs(freqs/1e6), abs(eventfft))
-                plt.title(str(ch) + " Event: " + str(i + 1))
+                plt.title("FFT CH: " + str(ch) + " Trigger: " +
+                          str(indiv_event.tc))
+                plt.xlabel('Frequency (MHz)')
                 plt.show()
+            count +=1
         if count == args.pltnum:
            break
+        
+
+    plt.plot(abs(freqs/1e6), abs(totalfft))
     plt.title("Total (Sum) FFT CH: " + str(ch))
     plt.xlabel('Frequency (MHz)')
     plt.show()
-
 
 def filter(events, ch):
     filteredevents = []
@@ -340,7 +348,6 @@ def process_file(localpath):
         # quit()
     print("Triggers Expected, Processed: " + str(stc) + ", " + str(trgrcv))
 
-print("HI 123", args.p)
 if args.p == [-1]:
     plotargs = list(range(63))
 else:
@@ -374,11 +381,11 @@ if events:
         exportroot(events)
     print(args.p)
     if args.p:
-        pltttl = "CH: "
+        #pltttl = "CH: "
         for channel in plotargs:
-            pltttl = pltttl + str(channel) + " "  # plot title
+            pltttl = "CH: " + str(channel) + " "  # plot title
             plotchannel(events, channel, super=args.super)
-            plt.show()
+            #plt.show()
 
     if args.darkrate:
         plotdarkrate(events)
@@ -398,11 +405,12 @@ if events:
         plt.show()
 
     if args.fft:
+        print(args.fft)
         pltttl = "FFT CH: "
         for channel in args.fft:
             pltttl = pltttl + str(channel) + " "
             fftchannel(events, channel, super=args.super)
-    plt.show()
+    #plt.show()
 
 
 else:
