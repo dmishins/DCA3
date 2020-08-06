@@ -40,7 +40,7 @@ parser.add_argument('--super', action='store_true',
                     help='superimpose plots')
 parser.add_argument('--pltnum', action='store', type=int,
                     help='number of signals to plt.')
-parser.add_argument('--filter', action='store', nargs='*',
+parser.add_argument('--filter', action='store', nargs='*', type=int,
                     help='filter based on following channels.  Currently filter settings must be changed by editing code')
 parser.add_argument('--verbose', action='store_true',
                     help='prints additional info')
@@ -194,9 +194,11 @@ def fftchannel(events, ch, super=False):
 def filter(events, ch):
     filteredevents = []
     for i, indiv_event in enumerate(events):  # [events[x] for x in noisy]:
-        fft = np.fft.fft(indiv_event.wave[ch])
-        if max(abs(fft[8:11])) < 275:
-            filteredevents.append(indiv_event)
+        if ch in indiv_event.wave:
+            fft = np.fft.fft(indiv_event.wave[ch])
+            if max(abs(fft[8:11])) < 10000:
+                filteredevents.append(indiv_event)
+
     return filteredevents
 
 
