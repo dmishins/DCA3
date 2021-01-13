@@ -212,7 +212,7 @@ def exportroot(events):
     f = TFile(args.root, 'recreate')
     t = TTree('t1', 'adc data')
 
-    maxn = event.maxlen
+    maxn = events[0].maxlen//16-1
     print(maxn)
     d1 = array('i', maxn * [0])
     d2 = array('i', maxn * [0])
@@ -225,20 +225,25 @@ def exportroot(events):
     t.Branch('ch4', d4, 'ch4[' + str(maxn) + ']/I')
 
     for event in events:
-        for j in range(event.eventlength):
-            d1[j] = event.ch1[j]
-            # print d1[j]
-            d2[j] = event.ch2[j]
-            d3[j] = event.ch3[j]
-            d4[j] = event.ch4[j]
-        # print d1
-        t.Fill()
-    # t.Print()
-    # t.Show(0)
-    # t.Show(1)
-    # t.Show(2)
-    # t.Show(3)
-    # t.Scan("*")
+        #print("EVENT MAX LEN:  ", event.maxlen//16)
+        if 16 in event.wave:
+            #for key, value in event.wave.items() :
+                #    print (key, value)
+            for j in range(event.maxlen//16-1):
+                #print(event.wave[16].size)
+                d1[j] = event.wave[16][j]
+                # print d1[j]
+                d2[j] = event.wave[17][j]
+                d3[j] = event.wave[18][j]
+                d4[j] = event.wave[19][j]
+            # print d1
+            t.Fill()
+    t.Print()
+    #t.Show(0)
+    #t.Show(1)
+    #t.Show(2)
+    #t.Show(3)
+    #t.Scan("*")
 
     f.Write()
     f.Close()
